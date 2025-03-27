@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+
+	"github.com/lpernett/godotenv"
 )
 
 type Config struct {
@@ -20,6 +22,9 @@ var Envs = initConfig()
 
 // This function will return the configuration object
 func initConfig() Config {
+	// Allowing our program to call environment variables from a .env file
+	godotenv.Load()
+	
 	// return the struct
 	// We can get the details using a getter function e.g., getEnv
 	return Config{
