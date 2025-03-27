@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"strings"
+
+	"github.com/adammwaniki/mi-segunda-api-de-golang/service/user"
+	"github.com/gorilla/mux"
 )
 
 type APIServer struct{
@@ -20,30 +22,13 @@ func NewAPIServer (addr string, db *sql.DB) *APIServer {
 	}
 }
 
-// PrefixHandler strips the prefix before forwarding requests
-func PrefixHandler(prefix string, handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.URL.Path, prefix) {
-			// Remove the prefix before forwarding the request
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix)
-			if r.URL.Path == "" {
-				r.URL.Path = "/"
-			}
-			handler.ServeHTTP(w, r)
-		} else {
-			http.NotFound(w, r)
-		}
-	})
-}
-
-
 // Run starts the HTTP server
 func (s *APIServer) Run() error {
-	router := http.NewServeMux() // Root router
+	router := mux.NewRouter()
+	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
-	// Attach user service routes
-	userRoutes := user.NewUserRoutes(s.db) // Get user routes
-	router.Handle("/api/v1/users/", PrefixHandler("/api/v1/users", userRoutes))
+	userHandler := user.NewHandler()
+	userHandler.RegisterRoutes(subrouter)
 
 	log.Println("Server running on", s.addr)
 	return http.ListenAndServe(s.addr, router)
