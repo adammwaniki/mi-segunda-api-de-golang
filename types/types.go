@@ -3,6 +3,8 @@ package types
 // This will be an interface so that we can easily test it
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error) // e.g. any instance of the store in the store.go package will be a valid variable for this interface
+	GetUserByID(id int) (*User, error)
+	CreateUser(User) error
 }
 
 // We could test the routes associated with the Store using a mock interface of the UserStore
