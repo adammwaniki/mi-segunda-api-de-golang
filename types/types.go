@@ -7,6 +7,7 @@ type UserStore interface {
 	CreateUser(User) error
 }
 
+// This will be explained in depth in the routes_test.go package
 // We could test the routes associated with the Store using a mock interface of the UserStore
 /*
 type mockUserStore struct {}

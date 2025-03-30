@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/adammwaniki/mi-segunda-api-de-golang/service/auth"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/types"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/utils"
 	"github.com/gorilla/mux"
@@ -40,12 +41,18 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
+	hashedPassword, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	// If user does not exist, create a new user
 	err = h.store.CreateUser(types.User{
 		FirstName: 	payload.FirstName,
 		LastName:  	payload.LastName,
 		Email: 		payload.Email,
-		Password: 	payload.Password, // At the moment this stores the password as plaintext which of course we don't want
+		Password: 	hashedPassword, // Updated to the hashed password
 	})
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
