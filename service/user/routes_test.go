@@ -19,7 +19,7 @@ func TestUserServiceHandler(t *testing.T) {
 		payload := types.RegisterUserPayload{
 			FirstName: "user123testme",
 			LastName: "chonjomyguy",
-			Email: "",
+			Email: "", // at the moment the test passes even though the email is empty
 			Password: "asd",
 		}
 		marshalled, _ := json.Marshal(payload)
