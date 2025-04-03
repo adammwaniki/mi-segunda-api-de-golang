@@ -4,7 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
 )
+
+// Making a reusable function that will call the validator
+var Validate = validator.New()
 
 // Making this a utility since it can be reused across different packages
 func ParseJSON(r *http.Request, payload any) error {
