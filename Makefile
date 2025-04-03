@@ -1,5 +1,5 @@
 build:
-	@go build -o bin/mi-segunda-api-de-golang cmd/migrate/main.go
+	@go build -o bin/mi-segunda-api-de-golang cmd/main.go
 
 test:
 	@go test -v ./...
