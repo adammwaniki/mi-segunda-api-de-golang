@@ -20,7 +20,7 @@ func TestUserServiceHandler(t *testing.T) {
 		payload := types.RegisterUserPayload{
 			FirstName: "user123testme",
 			LastName: "chonjomyguy",
-			Email: "asd", // test should pass if the password is not valid
+			Email: "invalid", // test should pass if the password is not valid
 			Password: "asd",
 		}
 		marshalled, _ := json.Marshal(payload)
@@ -38,6 +38,31 @@ func TestUserServiceHandler(t *testing.T) {
 
 		if rr.Code != http.StatusBadRequest {
 			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, rr.Code)
+		}
+	})
+
+	t.Run("should correctly register the user", func (t *testing.T)  {
+		payload := types.RegisterUserPayload{
+			FirstName: "user123testme",
+			LastName: "chonjomyguy",
+			Email: "valid@gmail.com", // test should pass if the password is not valid
+			Password: "asd",
+		}
+		marshalled, _ := json.Marshal(payload)
+
+		req, err := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(marshalled))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		router := mux.NewRouter()
+
+		router.HandleFunc("/register", handler.handleRegister)
+		router.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusCreated { // StatusCreated if successful
+			t.Errorf("expected status code %d, got %d", http.StatusCreated, rr.Code)
 		}
 	})
 }
