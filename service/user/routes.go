@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/adammwaniki/mi-segunda-api-de-golang/config"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/service/auth"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/types"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/utils"
@@ -51,8 +52,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	// Passing in an empty token for now prior to implementation of JWT
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": ""})
+	// 
+	secret := []byte(config.Envs.JWTSecret)
+	token, err := auth.CreateJWT(secret, u.ID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// Passing in the token with implementation of JWT
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request){
