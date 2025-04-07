@@ -62,7 +62,8 @@ func (s *Store) CreateProduct(product types.Product) error {
 	return nil
 }
 
-// Similar to GetUserByID
+// Similar to GetUserByID 
+// Modify this to allow GetProductBySKU and GetProductByUPC
 func (s *Store) GetProductByID(id int) (*types.Product, error) {
 	rows, err := s.db.Query("SELECT * FROM products WHERE id = ?", id)
 	if err != nil {
