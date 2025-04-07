@@ -11,6 +11,7 @@ type Store struct {
 	db *sql.DB
 }
 
+// Repository for the users
 func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
