@@ -12,16 +12,27 @@ type UserStore interface {
 // interface for the repository of products just like the userstore above
 type ProductStore interface {
 	GetProducts() ([]Product, error) // function that returns a slice of Products
+	GetProductByID(id int) (*Product, error)
+	GetProductByName(name string) (*Product, error)
+	CreateProduct(Product) error
 }
 
 type Product struct {
-	ID			int			`json:"id"`
-	Name 		string		`json:"name"`
+	ID			int			`json:"id"` // Look into handling product IDs and user IDs using UUID or other means to prevent collisions
+	Name 		string		`json:"name"` // Consider adding another field for product identifiers (SKU --internal use and/or UPC (Universal Product Code) --external use) to help handle getProductBySKU/getProductByUPC
 	Description	string		`json:"description"`
 	Image		string		`json:"image"`
 	Price		float64		`json:"price"`
 	Quantity	int			`json:"quantity"` // This is not the best way to handle the quantity since it is not atomic (ACID) hence with multiple concurrent requests the reported quantity may be a false value
 	CreatedAt	time.Time	`json:"createdAt"`
+}
+
+type RegisterProductPayload struct{
+	Name		string	`json:"name" validate:"required"`
+	Description	string	`json:"description" validate:"required"`
+	Image		string	`json:"image" validate:"required"`
+	Price		float64	`json:"price" validate:"required"` 
+	Quantity	int		`json:"quantity" validate:"required"` // Remember to find a better way to handle quantity
 }
 
 
