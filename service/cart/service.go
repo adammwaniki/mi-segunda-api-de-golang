@@ -21,3 +21,17 @@ func getCartItemsIDs(items []types.CartItem) ([]int, error) {
 
 	return productIds, nil
 }
+
+// function to create
+// This method will be received by the handler because it needs to access all the repositories
+// It will take in the products, the cart items and the userID to make a table association
+// It will return the orderId, the total amount for a user to pay and an error
+func (h *Handler) CreateOrder(ps []types.Product, item []types.CartItem, userID int) (int, float64, error) {
+	// Algo:
+	// Check  if all products are actually in stock
+	// Calculate the total price
+	// Reduce the quantity of products in our database (ACID)
+	// Create the order
+	// Create the order items
+	// Ideally you should wrap this into one SQL transaction. This will be a separate assignment
+}
