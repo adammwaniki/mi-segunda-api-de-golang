@@ -44,7 +44,14 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 	// e.g. they may be out of stock or don't exist etc.
 	// We can create a service file in the cart directory to help handle business logic
 
-	// get products
-	ps, err := h.productStore.GetProducts(productIDs)
+	// Get products
+	// We need these products to be handled by id as a slice of ids. This can be handled in the service file 
+	productIDs, err := getCartItemsIDs(cart.Items)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	ps, err := h.productStore.GetProductByIDs(productIDs)
 
 }
