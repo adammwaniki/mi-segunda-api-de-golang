@@ -44,7 +44,7 @@ func (h *Handler) createOrder(products []types.Product, cartItems []types.CartIt
 
 	// stock check
 	if err := checkIfCartIsInStock(cartItems, productsMap); err != nil {
-		return 0, 0, nil
+		return 0, 0, err
 	}
 
 	// price calculation

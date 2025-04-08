@@ -112,5 +112,22 @@ func GetUserIDFromContext(ctx context.Context) int {
 
 
 /*
+{
+    "items": [
+        {
+            "productID": 1,
+            "quantity": 2
+        },
+        {
+            "productID": 2,
+            "quantity": 3
+        }
+    ]
+}
 
-	*/
+{
+    "email": "user@example.com",
+    "password": "asd"
+}
+
+*/
