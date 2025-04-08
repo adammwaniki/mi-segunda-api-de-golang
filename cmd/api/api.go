@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/adammwaniki/mi-segunda-api-de-golang/service/cart"
+	"github.com/adammwaniki/mi-segunda-api-de-golang/service/order"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/service/product"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/service/user"
 	"github.com/gorilla/mux"
@@ -35,8 +37,13 @@ func (s *APIServer) Run() error {
 
 	// Register product service on the api
 	productStore := product.NewStore(s.db)
-	productHandler := product.NewHandler(productStore)
+	productHandler := product.NewHandler(productStore, userStore)
 	productHandler.RegisterRoutes(subrouter)
+
+	orderStore := order.NewStore(s.db)
+
+	cartHandler := cart.NewHandler(productStore, orderStore, userStore)
+	cartHandler.RegisterRoutes(subrouter)
 
 	log.Println("Server running on", s.addr)
 	return http.ListenAndServe(s.addr, router)

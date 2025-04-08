@@ -17,20 +17,20 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetProducts() ([]types.Product, error) {
+func (s *Store) GetProducts() ([]*types.Product, error) {
 	// Similar to the users we can select products using sql or sqlx or even an orm
 	rows, err := s.db.Query("SELECT * FROM products")
 	if err != nil {
 		return nil, err
 	}
 
-	products := make([]types.Product, 0)
+	var products []*types.Product
 	for rows.Next() {
 		p, err := scanRowsIntoProduct(rows)
 		if err != nil {
 			return nil, err
 		}
-		products = append(products, *p)
+		products = append(products, p)
 	}
 	return products, nil
 }
@@ -55,7 +55,7 @@ func scanRowsIntoProduct(rows *sql.Rows) (*types.Product, error) {
 }
 
 // Similar to the CreateUser handler
-func (s *Store) CreateProduct(product types.Product) error {
+func (s *Store) CreateProduct(product types.CreateProductPayload) error {
 	_, err := s.db.Exec("INSERT INTO products (name, description, image, price, quantity) VALUES (?,?,?,?,?)", product.Name, product.Description, product.Image, product.Price, product.Quantity)
 	if err != nil {
 		return err
@@ -64,8 +64,26 @@ func (s *Store) CreateProduct(product types.Product) error {
 }
 
 // Similar to GetUserByID 
-// Modify this to allow GetProductBySKU and GetProductByUPC
-func (s *Store) GetProductByIDs(productIDs []int) ([]types.Product, error) {
+// Modify this to allow GetProductBySKU and GetProductByUPC to prevent collisions at scale
+func (s *Store) GetProductByID(productID int) (*types.Product, error) {
+	rows, err := s.db.Query("SELECT * FROM products WHERE id = ?", productID)
+	if err != nil {
+		return nil, err
+	}
+
+	p := new(types.Product)
+	for rows.Next() {
+		p, err = scanRowsIntoProduct(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return p, nil
+}
+
+// Get the items in a user's cart by their id
+func (s *Store) GetProductsByIDs(productIDs []int) ([]types.Product, error) {
 	placeholders := strings.Repeat(",?", len(productIDs)-1)
 	query := fmt.Sprintf("SELECT * FROM products WHERE id IN (?%s)", placeholders)
 

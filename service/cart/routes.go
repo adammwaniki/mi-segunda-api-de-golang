@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/adammwaniki/mi-segunda-api-de-golang/service/auth"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/types"
 	"github.com/adammwaniki/mi-segunda-api-de-golang/utils"
 	"github.com/go-playground/validator/v10"
@@ -11,23 +12,35 @@ import (
 )
 
 type Handler struct {
-	store 			types.OrderStore
-	productStore 	types.ProductStore
+	store      types.ProductStore
+	orderStore types.OrderStore
+	userStore  types.UserStore
 }
 
-func NewHandler(store types.OrderStore, productStore types.ProductStore) *Handler {
-	return &Handler{store: store, productStore: productStore}
+func NewHandler(
+	store types.ProductStore,
+	orderStore types.OrderStore,
+	userStore types.UserStore,
+) *Handler {
+	return &Handler{
+		store:      store,
+		orderStore: orderStore,
+		userStore:  userStore,
+	}
 }
 
+// We need to add authentication
+// We can use a higher order function aka a decorated pattern
+// The idea is to wrap our func below in an authentication handler
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/cart/checkout", h.handleCheckout).Methods(http.MethodPost)
+	router.HandleFunc("/cart/checkout", auth.WithJWTAuth(h.handleCheckout, h.userStore)).Methods(http.MethodPost)
 }
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 	// We expect to receive some sort of cart object from the frontend
 	// e.g. an array of items and their quantity
 	// Start by parsing this json from the frontend
-	userID := 0 // This will come from the JWT once we implement authentication
+	userID := auth.GetUserIDFromContext(r.Context()) // This will come from the JWT once we implement authentication
 	var cart types.CartCheckoutPayload
 
 	if err := utils.ParseJSON(r, &cart); err != nil {
@@ -54,13 +67,13 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps, err := h.productStore.GetProductByIDs(productIDs)
+	ps, err := h.store.GetProductsByIDs(productIDs)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	orderID, totalPrice, err := h.CreateOrder(ps, cart.Items, userID)
+	orderID, totalPrice, err := h.createOrder(ps, cart.Items, userID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

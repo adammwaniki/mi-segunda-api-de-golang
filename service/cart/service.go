@@ -26,12 +26,12 @@ func getCartItemsIDs(items []types.CartItem) ([]int, error) {
 // This method will be received by the handler because it needs to access all the repositories
 // It will take in the products, the cart items and the userID to make a table association
 // It will return the orderId, the total amount for a user to pay and an error
-func (h *Handler) CreateOrder(ps []types.Product, items []types.CartItem, userID int) (int, float64, error) {
+func (h *Handler) createOrder(products []types.Product, cartItems []types.CartItem, userID int) (int, float64, error) {
 	// small optimisation prior to the algorithm implementation
 	// Since we will require to loop multiple times over the products, we can create a map to speed up lookups
-	productMap := make(map[int]types.Product)
-	for _, product := range ps {
-		productMap[product.ID] = product
+	productsMap := make(map[int]types.Product)
+	for _, product := range products {
+		productsMap[product.ID] = product
 	}
 
 	// Algo:
@@ -43,24 +43,24 @@ func (h *Handler) CreateOrder(ps []types.Product, items []types.CartItem, userID
 	// Ideally you should wrap this into one SQL transaction. This will be a separate assignment
 
 	// stock check
-	if err := checkIfCartIsInStock(items, productMap); err != nil {
+	if err := checkIfCartIsInStock(cartItems, productsMap); err != nil {
 		return 0, 0, nil
 	}
 
 	// price calculation
-	totalPrice := calculateTotalPrice(items, productMap)
+	totalPrice := calculateTotalPrice(cartItems, productsMap)
 
 	// reduce quantity of products from the db
 	// It would be best to refactor for atomicity e.g. by handling quantities in a separate table the same way orderItems are a separate table
-	for _, item := range items {
-		product := productMap[item.ProductID]
+	for _, item := range cartItems {
+		product := productsMap[item.ProductID]
 		product.Quantity -= item.Quantity
 
-		h.productStore.UpdateProduct(product)
+		h.store.UpdateProduct(product)
 	}
 
-	// create the order
-	orderID, err := h.store.CreateOrder(types.Order{
+	// create the order record
+	orderID, err := h.orderStore.CreateOrder(types.Order{
 		UserID: userID,
 		Total: totalPrice,
 		Status: "pending", // default
@@ -71,12 +71,12 @@ func (h *Handler) CreateOrder(ps []types.Product, items []types.CartItem, userID
 	}
 
 	// create order items
-	for _, item := range items {
-		h.store.CreateOrderItem(types.OrderItem{
+	for _, item := range cartItems {
+		h.orderStore.CreateOrderItem(types.OrderItem{
 			OrderID: orderID,
 			ProductID: item.ProductID,
 			Quantity: item.Quantity,
-			Price: productMap[item.ProductID].Price,
+			Price: productsMap[item.ProductID].Price,
 		})
 	}
 

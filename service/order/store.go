@@ -1,4 +1,4 @@
-package cart
+package order
 
 import (
 	"database/sql"
@@ -8,6 +8,11 @@ import (
 
 type Store struct {
 	db *sql.DB
+}
+
+// Repository for the products
+func NewStore(db *sql.DB) *Store {
+	return &Store{db: db}
 }
 
 // Insert into orders and get back the id since we need it for the cart
