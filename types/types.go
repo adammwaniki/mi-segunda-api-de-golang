@@ -12,7 +12,7 @@ type UserStore interface {
 // interface for the repository of products just like the userstore above
 type ProductStore interface {
 	GetProducts() ([]Product, error) // function that returns a slice of Products
-	GetProductByID(id int) (*Product, error)
+	GetProductByIDs(ps []int) ([]Product, error) // method to help get products that are in the cart. We pass in a slice of ids and get back a slice of the products
 	GetProductByName(name string) (*Product, error)
 	CreateProduct(Product) error
 }

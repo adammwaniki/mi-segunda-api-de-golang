@@ -3,6 +3,7 @@ package product
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/adammwaniki/mi-segunda-api-de-golang/types"
 )
@@ -64,25 +65,30 @@ func (s *Store) CreateProduct(product types.Product) error {
 
 // Similar to GetUserByID 
 // Modify this to allow GetProductBySKU and GetProductByUPC
-func (s *Store) GetProductByID(id int) (*types.Product, error) {
-	rows, err := s.db.Query("SELECT * FROM products WHERE id = ?", id)
+func (s *Store) GetProductByIDs(productIDs []int) ([]types.Product, error) {
+	placeholders := strings.Repeat(",?", len(productIDs)-1)
+	query := fmt.Sprintf("SELECT * FROM products WHERE id IN (?%s)", placeholders)
+
+	// Convert productIDs to []interface{}
+	args := make([]interface{}, len(productIDs))
+	for i, v := range productIDs {
+		args[i] = v
+	}
+
+	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	
-	p := new(types.Product)
+	products := []types.Product{}
 	for rows.Next() {
-		p, err = scanRowsIntoProduct(rows)
+		p, err := scanRowsIntoProduct(rows)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	if p.ID == 0 {
-		return nil, fmt.Errorf("product not found")
+		products = append(products, *p)
 	}
-
-	return p, nil
+	return products, nil
 }
 
 func (s *Store) GetProductByName(name string) (*types.Product, error) {

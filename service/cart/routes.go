@@ -42,6 +42,9 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 
 	// We now need to loop over the cart items and perform validation on the items themselves
 	// e.g. they may be out of stock or don't exist etc.
-	// We can create a service file in the cart directory to help with this
+	// We can create a service file in the cart directory to help handle business logic
+
+	// get products
+	ps, err := h.productStore.GetProducts(productIDs)
 
 }
