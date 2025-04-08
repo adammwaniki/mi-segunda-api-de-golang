@@ -15,6 +15,7 @@ type ProductStore interface {
 	GetProductByIDs(ps []int) ([]Product, error) // method to help get products that are in the cart. We pass in a slice of ids and get back a slice of the products
 	GetProductByName(name string) (*Product, error)
 	CreateProduct(Product) error
+	UpdateProduct(Product) error
 }
 
 type Product struct {

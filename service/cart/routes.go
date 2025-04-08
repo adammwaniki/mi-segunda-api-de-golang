@@ -27,7 +27,9 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 	// We expect to receive some sort of cart object from the frontend
 	// e.g. an array of items and their quantity
 	// Start by parsing this json from the frontend
+	userID := 0 // This will come from the JWT once we implement authentication
 	var cart types.CartCheckoutPayload
+
 	if err := utils.ParseJSON(r, &cart); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -53,5 +55,20 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ps, err := h.productStore.GetProductByIDs(productIDs)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	orderID, totalPrice, err := h.CreateOrder(ps, cart.Items, userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]any{
+		"total_price": totalPrice,
+		"order_id": orderID,
+	})
 
 }
